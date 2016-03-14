@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+
+# The code assumes the input file is valid, so it focuses on the algorithm
+# only. I do not really need the App class. What I need is actually a way to
+# map string to function, like function pointers in C or anonymous function in
+# javascript. I know there is lambda in Ruby, but I could not call it
+# dynamically. The trick to keep the code short is by using arrays indexes with
+# mod for rotation. To handle move command, I created a 'diff' 2-d array that
+# will map direction index (0,1,2,3) to the supposed change in the position.
+# Note this line also: position = app.send(c.downcase, *position) where I
+# update the position to be re-used in the next iteration.
+class App
+  def initialize
+    @moves = [[0, 1], [-1, 0], [0, -1], [1, 0]]
+  end
+
+  def l(x, y, facing)
+    [x, y, (facing + 1) % 4]
+  end
+
+  def r(x, y, facing)
+    [x, y, (facing - 1) % 4]
+  end
+
+  def m(x, y, facing)
+    [x + @moves[facing][0], y + @moves[facing][1], facing]
+  end
+end
+
+directions = %w( N W S E )
+app = App.new
+file = File.open(ARGV.shift)
+
+# No input validation, so skip the plateau size
+file.gets
+
+until file.eof?
+  x, y, facing = file.gets.chomp!.split(' ')
+  position = [Integer(x), Integer(y), Integer(directions.find_index(facing))]
+  commands = file.gets.chomp!.split('')
+  commands.each do |c|
+    position = app.send(c.downcase, *position)
+  end
+
+  # Re-map facing back to letters
+  position[2] = directions[position[2]]
+
+  # Print final result
+  puts position.join(' ')
+
+end
+
+file.close
